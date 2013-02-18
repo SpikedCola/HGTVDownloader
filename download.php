@@ -74,7 +74,7 @@
 						else {
 							echo '> Downloading "'.$episode['title'].'"... ';
 							exec('rtmpdump -r "' . $episode['stream'] . '" -y "' . $episode['playlist'] . '" -o "' . $downloadFolder.$category.'/'.$series.'/'.$season.'/'.$episode['title'].'.flv"');
-							echo PHP_EOL;
+							echo ' Download complete!'.PHP_EOL;
 						}
 					}
 				}
