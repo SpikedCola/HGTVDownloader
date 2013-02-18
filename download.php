@@ -43,7 +43,7 @@
 	}
 	
 	echo ' Done!'.PHP_EOL.PHP_EOL;
-	echo '== Lets start downloading some shows :) =='.PHP_EOL.PHP_EOL;
+	echo '== Lets start downloading some shows :) =='.PHP_EOL;
 	
 	if (!is_dir($downloadFolder)) {
 		mkdir($downloadFolder);
@@ -62,7 +62,7 @@
 					mkdir($downloadFolder.$category.'/'.$series.'/'.$season);
 				}
 				
-				echo 'Finding episodes for "' . $series . ' - ' . $season . '"...';
+				echo PHP_EOL.'Finding episodes for "' . $series . ' - ' . $season . '"...';
 				$episodes = getEpisodes($data[0]->ID);
 				echo ' Found ' . count($episodes) . ' episode(s)'.PHP_EOL;
 				
@@ -74,7 +74,7 @@
 						else {
 							echo '> Downloading "'.$episode['title'].'"... ';
 							exec('rtmpdump -r "' . $episode['stream'] . '" -y "' . $episode['playlist'] . '" -o "' . $downloadFolder.$category.'/'.$series.'/'.$season.'/'.$episode['title'].'.flv"');
-							echo ' Done!'.PHP_EOL;
+							echo PHP_EOL;
 						}
 					}
 				}
