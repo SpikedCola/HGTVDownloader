@@ -12,7 +12,7 @@
 	 * Requires rtmpdump in the same folder as this script.
 	 */	
 	
-	$downloadFolder = __DIR__ . '/downloads/';
+	$downloadFolder = 'D:/HGTV/';
 	
 	echo PHP_EOL;
 	
@@ -91,7 +91,8 @@
 	 * @throws Exception If RTMP URL cant be found, or if RTMP URL is missing <break>
 	 */
 	function getEpisodes($id) {
-		$url = 'http://feeds.theplatform.com/ps/JSON/PortalService/2.2/getReleaseList?callback=&field=ID&field=contentID&field=PID&field=URL&field=categoryIDs&field=length&field=airdate&field=requestCount&PID=HmHUZlCuIXO_ymAAPiwCpTCNZ3iIF1EG&contentCustomField=Show&contentCustomField=Episode&contentCustomField=Network&contentCustomField=Season&contentCustomField=Zone&contentCustomField=Subject&query=Categories|z/HGTVNEWVC%20-%20New%20Video%20Center&param=Site|shaw.hgtv.ca&param=k0|id&param=v0|399&param=k1|cnt&param=v1|lifestylehomes&param=k2|nk&param=v2|sbrdcst&param=k3|pr&param=v3|hgtv&param=k4|kw&param=v4|shaw&param=k5|test&param=v5|test&param=k6|ck&param=v6|video&param=k7|imp&param=v7|video&param=k8|liveinsite&param=v8|hrtbuy&query=CategoryIDs|'.$id.'&field=thumbnailURL&field=title&field=length&field=description&field=assets&contentCustomField=Part&contentCustomField=Clip%20Type&contentCustomField=Web%20Exclusive&contentCustomField=ChapterStartTimes&contentCustomField=AlternateHeading&startIndex=9&endIndex=16&sortField=airdate&sortDescending=true';
+		// 99 episodes at a time (start & end index)
+		$url = 'http://feeds.theplatform.com/ps/JSON/PortalService/2.2/getReleaseList?callback=&field=ID&field=contentID&field=PID&field=URL&field=categoryIDs&field=length&field=airdate&field=requestCount&PID=HmHUZlCuIXO_ymAAPiwCpTCNZ3iIF1EG&contentCustomField=Show&contentCustomField=Episode&contentCustomField=Network&contentCustomField=Season&contentCustomField=Zone&contentCustomField=Subject&query=Categories|z/HGTVNEWVC%20-%20New%20Video%20Center&param=Site|shaw.hgtv.ca&param=k0|id&param=v0|399&param=k1|cnt&param=v1|lifestylehomes&param=k2|nk&param=v2|sbrdcst&param=k3|pr&param=v3|hgtv&param=k4|kw&param=v4|shaw&param=k5|test&param=v5|test&param=k6|ck&param=v6|video&param=k7|imp&param=v7|video&param=k8|liveinsite&param=v8|hrtbuy&query=CategoryIDs|'.$id.'&field=thumbnailURL&field=title&field=length&field=description&field=assets&contentCustomField=Part&contentCustomField=Clip%20Type&contentCustomField=Web%20Exclusive&contentCustomField=ChapterStartTimes&contentCustomField=AlternateHeading&startIndex=1&endIndex=99&sortField=airdate&sortDescending=true';
 		$episodes = array();
 		$response = file_get_contents($url);
 		$json = json_decode($response);
@@ -113,7 +114,7 @@
 				}
 			}
 			if (!$show || !$ep || !$season) {
-				throw new Exception('Show, episode or season was missing: ' . print_r($episode, true));
+				continue;
 			}
 			$title = $show . ' - S' . $season . 'E' . $ep;
 			$xmlString = file_get_contents($episode->URL);
