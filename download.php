@@ -68,12 +68,12 @@
 				
 				if (count($episodes) > 0) {
 					foreach ($episodes as $episode) {
-						if (file_exists($downloadFolder.$category.'/'.$series.'/'.$season.'/'.$episode['title'].'.mp4')) {
+						if (file_exists($downloadFolder.$category.'/'.$series.'/'.$season.'/'.$episode['title'].'.flv')) {
 							echo '> "'.$episode['title'].'" exists, skipping.'.PHP_EOL;
 						}
 						else {
 							echo '> Downloading "'.$episode['title'].'"...';
-							exec('rtmpdump -q -r "' . $episode['stream'] . '" -y "' . $episode['playlist'] . '" -o "' . $downloadFolder.$category.'/'.$series.'/'.$season.'/'.$episode['title'].'.mp4"');
+							exec('rtmpdump -q -r "' . $episode['stream'] . '" -y "' . $episode['playlist'] . '" -o "' . $downloadFolder.$category.'/'.$series.'/'.$season.'/'.$episode['title'].'.flv"');
 							echo ' Done!'.PHP_EOL;
 						}
 					}
@@ -116,7 +116,7 @@
 			if (!$show || !$ep || !$season) {
 				continue;
 			}
-			$title = $show . ' - S' . $season . 'E' . $ep;
+			$title = $show . ' - S' . $season . 'E' . $ep . ' - ' . $episode->title;
 			$xmlString = file_get_contents($episode->URL);
 			$xml = simplexml_load_string($xmlString);
 			$streamUrl = null;
