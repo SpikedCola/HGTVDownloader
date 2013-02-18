@@ -72,8 +72,8 @@
 							echo '> "'.$episode['title'].'" exists, skipping.'.PHP_EOL;
 						}
 						else {
-							echo '> Downloading "'.$episode['title'].'"...';
-							exec('rtmpdump -q -r "' . $episode['stream'] . '" -y "' . $episode['playlist'] . '" -o "' . $downloadFolder.$category.'/'.$series.'/'.$season.'/'.$episode['title'].'.flv"');
+							echo '> Downloading "'.$episode['title'].'"... ';
+							exec('rtmpdump -r "' . $episode['stream'] . '" -y "' . $episode['playlist'] . '" -o "' . $downloadFolder.$category.'/'.$series.'/'.$season.'/'.$episode['title'].'.flv"');
 							echo ' Done!'.PHP_EOL;
 						}
 					}
