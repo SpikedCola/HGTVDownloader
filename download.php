@@ -70,12 +70,12 @@
 				
 				if (count($episodes) > 0) {
 					foreach ($episodes as $episode) {
-						if (file_exists($folder.$episode['title'].'.flv')) {
+						$fileName = str_replace(array(':'), ' -', $episode['title']);
+						if (file_exists($folder.$fileName.'.flv')) {
 							echo '> "'.$episode['title'].'" exists, skipping.'.PHP_EOL;
 						}
 						else {
 							echo '> Downloading "'.$episode['title'].'"... ';
-							$fileName = str_replace(array(':'), ' -', $episode['title']);
 							exec('rtmpdump -r "' . $episode['stream'] . '" -y "' . $episode['playlist'] . '" -o "' . $folder.$fileName . '.flv"');
 							echo ' Download complete!'.PHP_EOL;
 						}
