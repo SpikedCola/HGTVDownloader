@@ -13,7 +13,6 @@
 	 */	
 	
 	$downloadFolder = 'D:/HGTV/';
-	$torrentsFolder = 'torrents/'; // a limitation of mktorrent is that the torrent output folder must be on the same drive as where mktorrent is run from
 	
 	echo PHP_EOL;
 	
@@ -76,20 +75,17 @@
 						}
 						else {
 							echo '> Downloading "'.$episode['title'].'"... ';
-							exec('rtmpdump -r "' . $episode['stream'] . '" -y "' . $episode['playlist'] . '" -o "' . $folder.$fileName . '.flv"');
-							echo ' Download complete!'.PHP_EOL;
+							$code = null;
+							$temp = array();
+							exec('rtmpdump -r "' . $episode['stream'] . '" -y "' . $episode['playlist'] . '" -o "' . $folder.$fileName . '.flv"', $temp, $code);
+							if ($code == 0) {	
+								echo ' Download complete!'.PHP_EOL;
+							}
+							else {
+								echo ' Download failed.'; 
+								die;
+							}
 						}
-					}
-					// make a torrent
-					$trackers = array(
-					    'udp://tracker.openbittorrent.com:80/announce',
-					    'udp://tracker.publicbt.com:80/announce',
-					    'udp://tracker.ccc.de:80/announce'
-					);
-					if (!file_exists($torrentsFolder.$series.' - '.$season.'.torrent')) {
-						echo '> Generating .torrent...';
-						exec('mktorrent -l 21 -a '.implode(',', $trackers).' -n "'.$series.' - '.$season.'" -o "'.$torrentsFolder.$series.' - '.$season.'.torrent" "'.str_replace('/', '\\', $downloadFolder.$category.'/'.$series.'/'.$season.'/').'\\" ');
-						echo ' done!'.PHP_EOL;
 					}
 				}
 			}
