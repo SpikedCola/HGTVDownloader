@@ -13,6 +13,7 @@
 	 */	
 	
 	$downloadFolder = 'D:/HGTV/';
+	$timesToRetry = 5;
 	
 	echo PHP_EOL;
 	
@@ -69,21 +70,36 @@
 				
 				if (count($episodes) > 0) {
 					foreach ($episodes as $episode) {
-						$fileName = str_replace(array(':'), ' -', $episode['title']);
+						$fileName = str_replace(array(':', '?'), array(' -', ''), $episode['title']);
 						if (file_exists($folder.$fileName.'.flv')) {
 							echo '> "'.$episode['title'].'" exists, skipping.'.PHP_EOL;
 						}
 						else {
-							echo '> Downloading "'.$episode['title'].'"... ';
-							$code = null;
-							$temp = array();
-							exec('rtmpdump -r "' . $episode['stream'] . '" -y "' . $episode['playlist'] . '" -o "' . $folder.$fileName . '.flv"', $temp, $code);
-							if ($code == 0) {	
-								echo ' Download complete!'.PHP_EOL;
-							}
-							else {
-								echo ' Download failed.'; 
-								die;
+							$tries = 0;
+							while(true) {
+								echo '> Downloading "'.$episode['title'].'"... ';
+								$code = null;
+								$temp = array();
+								exec('rtmpdump -r "' . $episode['stream'] . '" -y "' . $episode['playlist'] . '" -o "' . $folder.$fileName . '.flv"', $temp, $code);
+								if ($code == 0) {	
+									echo ' Download complete!'.PHP_EOL;
+									break;
+								}
+								else {
+									echo '> Download failed.';
+									if (file_exists($folder.$fileName.'.flv')) {
+										echo ' Unlinking file...';
+										unlink($folder.$fileName.'.flv'); 
+									}
+									if ($tries < $timesToRetry) {
+										echo ' Trying again.'.PHP_EOL;
+										$tries++;
+									}
+									else {
+										echo 'Too many retries';
+										die;
+									}
+								}
 							}
 						}
 					}
