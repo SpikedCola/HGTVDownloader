@@ -73,7 +73,8 @@
 						}
 						else {
 							echo '> Downloading "'.$episode['title'].'"... ';
-							exec('rtmpdump -r "' . $episode['stream'] . '" -y "' . $episode['playlist'] . '" -o "' . $downloadFolder.$category.'/'.$series.'/'.$season.'/'.$episode['title'].'.flv"');
+							$fileName = str_replace(array(':'), ' -', $episode['title']);
+							exec('rtmpdump -r "' . $episode['stream'] . '" -y "' . $episode['playlist'] . '" -o "' . $downloadFolder.$category.'/'.$series.'/'.$season.'/'.$fileName . '.flv"');
 							echo ' Download complete!'.PHP_EOL;
 						}
 					}
