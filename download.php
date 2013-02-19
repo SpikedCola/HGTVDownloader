@@ -96,6 +96,7 @@
 										$tries++;
 									}
 									else {
+										var_dump($episode);
 										echo 'Too many retries';
 										die;
 									}
@@ -159,7 +160,18 @@
 				throw new Exception('stream url didnt explode on <break>. url was: ' . $streamUrl);
 			}
 			$stream = $streamParts[0];
-			$playlist = 'mp4:'.$streamParts[1];
+			$playlistFile = $streamParts[1];
+			$playlistFileExtension = pathInfo($playlistFile, PATHINFO_EXTENSION);
+			if ($playlistFileExtension == 'flv') {
+				$playlist = 'flv:'.str_replace('.flv', '', $playlistFile);
+			}
+			elseif ($playlistFileExtension == 'mp4') {
+				$playlist = 'mp4:'.$playlistFile;
+			}
+			else {
+				throw new Exception('Unhandled playlist file extension: ' . $playlistFile);
+			}
+			
 			$episodes[] = array(
 			    'title' => $title,
 			    'stream' => $stream,
