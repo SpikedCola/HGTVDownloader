@@ -13,6 +13,7 @@
 	 */	
 	
 	$downloadFolder = 'D:/HGTV/';
+	$torrentsFolder = 'torrents/'; // a limitation of mktorrent is that the torrent output folder must be on the same drive as where mktorrent is run from
 	
 	echo PHP_EOL;
 	
@@ -58,8 +59,9 @@
 				mkdir($downloadFolder.$category.'/'.$series);
 			}
 			foreach ($seasons as $season => $data) {
-				if (!is_dir($downloadFolder.$category.'/'.$series.'/'.$season)) {
-					mkdir($downloadFolder.$category.'/'.$series.'/'.$season);
+				$folder = $downloadFolder.$category.'/'.$series.'/'.$season.'/';
+				if (!is_dir($folder)) {
+					mkdir($folder);
 				}
 				
 				echo PHP_EOL.'Finding episodes for "' . $series . ' - ' . $season . '"...';
@@ -68,15 +70,26 @@
 				
 				if (count($episodes) > 0) {
 					foreach ($episodes as $episode) {
-						if (file_exists($downloadFolder.$category.'/'.$series.'/'.$season.'/'.$episode['title'].'.flv')) {
+						if (file_exists($folder.$episode['title'].'.flv')) {
 							echo '> "'.$episode['title'].'" exists, skipping.'.PHP_EOL;
 						}
 						else {
 							echo '> Downloading "'.$episode['title'].'"... ';
 							$fileName = str_replace(array(':'), ' -', $episode['title']);
-							exec('rtmpdump -r "' . $episode['stream'] . '" -y "' . $episode['playlist'] . '" -o "' . $downloadFolder.$category.'/'.$series.'/'.$season.'/'.$fileName . '.flv"');
+							exec('rtmpdump -r "' . $episode['stream'] . '" -y "' . $episode['playlist'] . '" -o "' . $folder.$fileName . '.flv"');
 							echo ' Download complete!'.PHP_EOL;
 						}
+					}
+					// make a torrent
+					$trackers = array(
+					    'udp://tracker.openbittorrent.com:80/announce',
+					    'udp://tracker.publicbt.com:80/announce',
+					    'udp://tracker.ccc.de:80/announce'
+					);
+					if (!file_exists($torrentsFolder.$series.' - '.$season.'.torrent')) {
+						echo '> Generating .torrent...';
+						exec('mktorrent -l 21 -a '.implode(',', $trackers).' -n "'.$series.' - '.$season.'" -o "'.$torrentsFolder.$series.' - '.$season.'.torrent" "'.str_replace('/', '\\', $downloadFolder.$category.'/'.$series.'/'.$season.'/').'\\" ');
+						echo ' done!'.PHP_EOL;
 					}
 				}
 			}
