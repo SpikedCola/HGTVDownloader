@@ -113,7 +113,6 @@
 												sleep($sleep);
 											}
 											else {
-												var_dump($episode);
 												echo 'Too many retries. Removing incomplete file...';
 												if (file_exists($folder.$fileName.'.flv')) {
 													unlink($folder.$fileName.'.flv'); 
