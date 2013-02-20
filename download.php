@@ -21,7 +21,7 @@
 	$finishedShows = __DIR__ . '/finished.txt'; // ignore these shows
 	
 	echo PHP_EOL;
-	echo 'HGTV Show Downloader v0.1'.PHP_EOL.PHP_EOL;
+	echo 'HGTV Show Downloader v0.2'.PHP_EOL.PHP_EOL;
 	
 	$ignoreShows = array();
 	if ($fp = fopen($finishedShows, 'a+')) {
