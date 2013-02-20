@@ -169,10 +169,10 @@
 							$show = $data->value;
 							break;
 						case 'Episode':
-							$ep = $data->value;
+							$ep = str_pad($data->value, 2, STR_PAD_LEFT);
 							break;
 						case 'Season':
-							$season = $data->value;
+							$season = str_pad($data->value, 2, STR_PAD_LEFT);
 							break;
 					}
 				}
