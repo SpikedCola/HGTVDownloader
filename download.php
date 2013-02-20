@@ -17,7 +17,8 @@
 	
 	$downloadFolder = 'D:/HGTV/';
 	$timesToRetry = 5;
-	$finishedShows = __DIR__ . '/finished.txt'; // ignore these 
+	$sleep = 30; // sleep for 30s between retries
+	$finishedShows = __DIR__ . '/finished.txt'; // ignore these shows
 	
 	echo PHP_EOL;
 	echo 'HGTV Show Downloader v0.1'.PHP_EOL.PHP_EOL;
@@ -106,17 +107,18 @@
 										}
 										else {
 											echo '> Download failed.';
-											if (file_exists($folder.$fileName.'.flv')) {
-												echo ' Unlinking file...';
-												unlink($folder.$fileName.'.flv'); 
-											}
 											if ($tries < $timesToRetry) {
-												echo ' Trying again.'.PHP_EOL;
+												echo ' Trying again in '.$sleep.'s'.PHP_EOL;
 												$tries++;
+												sleep($sleep);
 											}
 											else {
 												var_dump($episode);
-												echo 'Too many retries';
+												echo 'Too many retries. Removing incomplete file...';
+												if (file_exists($folder.$fileName.'.flv')) {
+													unlink($folder.$fileName.'.flv'); 
+												}
+												echo ' Goodbye.';
 												die;
 											}
 										}
