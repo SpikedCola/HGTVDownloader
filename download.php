@@ -93,58 +93,63 @@
 						mkdir($downloadFolder.$category.'/'.$series);
 					}
 					foreach ($seasons as $season => $data) {
-						$folder = $downloadFolder.$category.'/'.$series.'/'.$season.'/';
-						if (!is_dir($folder)) {
-							mkdir($folder);
-						}
+						if (!in_array($series . ' - ' . $season, $ignoreSeasons)) {
+							$folder = $downloadFolder.$category.'/'.$series.'/'.$season.'/';
+							if (!is_dir($folder)) {
+								mkdir($folder);
+							}
 
-						echo PHP_EOL.'Finding episodes for "' . $series . ' - ' . $season . '"...';
-						$episodes = getEpisodes($data[0]->ID);
-						echo ' Found ' . count($episodes) . ' episode(s)'.PHP_EOL;
+							echo PHP_EOL.'Finding episodes for "' . $series . ' - ' . $season . '"...';
+							$episodes = getEpisodes($data[0]->ID);
+							echo ' Found ' . count($episodes) . ' episode(s)'.PHP_EOL;
 
-						if (count($episodes) > 0) {
-							foreach ($episodes as $episode) {
-								$fileName = str_replace(array(':', '?'), array(' -', ''), $episode['title']);
-								if (file_exists($folder.$fileName.'.flv')) {
-									echo '> "'.$episode['title'].'" exists, skipping.'.PHP_EOL;
-								}
-								else {
-									$tries = 0;
-									while(true) {
-										echo '> Downloading "'.$episode['title'].'"... ';
-										$code = null;
-										$temp = array();
-										exec('rtmpdump -r "' . $episode['stream'] . '" -y "' . $episode['playlist'] . '" -o "' . $folder.$fileName . '.flv"', $temp, $code);
-										if ($code == 0) {	
-											echo ' Download complete!'.PHP_EOL;
-											break;
-										}
-										else {
-											echo '> Download failed.';
-											if ($tries < $timesToRetry) {
-												echo ' Trying again in '.$sleep.'s'.PHP_EOL;
-												$tries++;
-												sleep($sleep);
+							if (count($episodes) > 0) {
+								foreach ($episodes as $episode) {
+									$fileName = str_replace(array(':', '?'), array(' -', ''), $episode['title']);
+									if (file_exists($folder.$fileName.'.flv')) {
+										echo '> "'.$episode['title'].'" exists, skipping.'.PHP_EOL;
+									}
+									else {
+										$tries = 0;
+										while(true) {
+											echo '> Downloading "'.$episode['title'].'"... ';
+											$code = null;
+											$temp = array();
+											exec('rtmpdump -r "' . $episode['stream'] . '" -y "' . $episode['playlist'] . '" -o "' . $folder.$fileName . '.flv"', $temp, $code);
+											if ($code == 0) {	
+												echo ' Download complete!'.PHP_EOL;
+												break;
 											}
 											else {
-												echo 'Too many retries. Removing incomplete file...';
-												if (file_exists($folder.$fileName.'.flv')) {
-													unlink($folder.$fileName.'.flv'); 
+												echo '> Download failed.';
+												if ($tries < $timesToRetry) {
+													echo ' Trying again in '.$sleep.'s'.PHP_EOL;
+													$tries++;
+													sleep($sleep);
 												}
-												echo ' Goodbye.';
-												die;
+												else {
+													echo 'Too many retries. Removing incomplete file...';
+													if (file_exists($folder.$fileName.'.flv')) {
+														unlink($folder.$fileName.'.flv'); 
+													}
+													echo ' Goodbye.';
+													die;
+												}
 											}
 										}
 									}
 								}
 							}
-						}
-						if ($fp = fopen($finishedSeasons, 'a')) {
-							fwrite($fp, $series . ' - ' . $season."\n");
-							fclose($fp);
+							if ($fp = fopen($finishedSeasons, 'a')) {
+								fwrite($fp, $series . ' - ' . $season."\n");
+								fclose($fp);
+							}
+							else {
+								echo '>> Failed saving to "Finished Seasons" file ('.$finishedSeasons.')'.PHP_EOL;
+							}
 						}
 						else {
-							echo '>> Failed saving to "Finished Seasons" file ('.$finishedSeasons.')'.PHP_EOL;
+							echo PHP_EOL . 'Ignoring "' . $series . ' - ' . $season . '"'.PHP_EOL;
 						}
 					}
 					if ($fp = fopen($finishedShows, 'a')) {
@@ -216,8 +221,17 @@
 						$ep = $matches[1]; // got it
 					}
 					else {
-						var_dump($matches);
-						var_dump($episode); die;
+						// check other form (multiple episodes in one)
+						$matches = array();
+						preg_match('/HGTV_'.str_replace(' ', '', $show).'_S([0-9]{1,2})_E([0-9]{1,4})_/', $episode->thumbnailURL, $matches);
+						var_dump($matches); die;
+						if (isset($matches[1]) && is_numeric($matches[1])) { // decimal episode numbers?
+							
+						}
+						else {
+							var_dump($matches);
+							var_dump($episode); die;
+						}
 					}
 				}
 				
