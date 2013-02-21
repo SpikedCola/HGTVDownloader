@@ -250,6 +250,13 @@
 					throw new Exception('Missing one of show/ep/season');
 				}
 				
+				// theres an episode thats labelled as s3 when its actually s1
+				// check the current episode against the first episode.
+				// if the first episode is wrong, fuck it, we tried. @todo
+				if (isset($episodes[0]) && isset($episodes[0]['season']) && $season != $episodes[0]['season']) {
+					$season = $episodes[0]['season'];
+				}
+				
 				// things like "outtakes" and "timelapses" are missing $ep but have an $alternateHeading
 				if ($show && $alternateHeading) {
 					$title = $show . ' - ' . $alternateHeading . ' - ' . $episode->title;
@@ -287,10 +294,11 @@
 					}
 
 					$episodes[] = array(
+					    'season' => $season,
 					    'title' => $title,
 					    'stream' => $stream,
 					    'playlist' => $playlist,
-					    'raw'=>$episode
+					    'raw' => $episode
 					);
 				}
 				else {
