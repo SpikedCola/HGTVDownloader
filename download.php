@@ -211,7 +211,7 @@
 					}
 				}
 				
-				// ffs, some episodes dont have an episode #. parse it
+				// ffs, some episodes dont have an episode #. parse it (and some even have the wrong season number. these people suck)
 				if (!$ep && !$alternateHeading && $episode->thumbnailURL && $show) {
 					// HGTV_DeckedOut_E1013
 					$matches = array();
@@ -221,16 +221,21 @@
 						$ep = $matches[1]; // got it
 					}
 					else {
-						// check other form (multiple episodes in one)
-						$matches = array();
-						preg_match('/HGTV_'.str_replace(' ', '', $show).'_S([0-9]{1,2})_E([0-9]{1,4})_/', $episode->thumbnailURL, $matches);
-						var_dump($matches); die;
-						if (isset($matches[1]) && is_numeric($matches[1])) { // decimal episode numbers?
-							
-						}
-						else {
-							var_dump($matches);
-							var_dump($episode); die;
+						if (!$season) {
+							// check other form (missing season AND episode, holyfuck)
+							// HGTV_DeckedOut_S1_E1012
+							// this is actually E12, the 10 seems to stay constant in the three examples I saw (1011, 1012)
+							$matches = array();
+							preg_match('/HGTV_'.str_replace(' ', '', $show).'_S([0-9]{1,2})_E([0-9]{3,4})_/', $episode->thumbnailURL, $matches);
+
+							if (isset($matches[1]) && is_numeric($matches[1]) && isset($matches[2]) && is_numeric($matches[2])) { // decimal episode numbers?
+								$season = str_pad($matches[1], 2, '0', STR_PAD_LEFT);
+								$ep = str_pad(substr($matches[2], -2, 2), 2, '0', STR_PAD_LEFT);
+							}
+							else {
+								var_dump($matches);
+								var_dump($episode); die;
+							}
 						}
 					}
 				}
