@@ -18,7 +18,8 @@
 	$downloadFolder = 'D:/HGTV/';
 	$timesToRetry = 5;
 	$sleep = 30; // sleep for 30s between retries
-	$finishedShows = __DIR__ . '/finished.txt'; // ignore these shows
+	$finishedShows = __DIR__ . '/finishedShows.txt'; // ignore these shows
+	$finishedSeasons = __DIR__ . '/finishedSeasons.txt'; // ignore these seasons
 	
 	echo PHP_EOL;
 	echo 'HGTV Show Downloader v0.2'.PHP_EOL.PHP_EOL;
@@ -33,7 +34,20 @@
 		fclose($fp);
 	}
 	else {
-		echo '>> Note: "Finished Show" file (' . $finishedShows . ') couldn\'t be read. <<'.PHP_EOL.PHP_EOL;
+		echo '>> Note: "Finished Shows" file (' . $finishedShows . ') couldn\'t be read. <<'.PHP_EOL.PHP_EOL;
+	}
+	
+	$ignoreSeasons = array();
+	if ($fp = fopen($finishedSeasons, 'a+')) {
+		while ($season = trim(fgets($fp))) {
+			if (strpos($season, '#') !== 0) {
+				$ignoreSeasons[] = $season;
+			}
+		}
+		fclose($fp);
+	}
+	else {
+		echo '>> Note: "Finished Seasons" file (' . $finishedSeasons . ') couldn\'t be read. <<'.PHP_EOL.PHP_EOL;
 	}
 	
 	$showListUrl = 'http://feeds.theplatform.com/ps/JSON/PortalService/2.2/getCategoryList?callback=&field=ID&field=depth&field=hasReleases&field=fullTitle&PID=HmHUZlCuIXO_ymAAPiwCpTCNZ3iIF1EG&query=CustomText|PlayerTag|z/HGTVNEWVC%20-%20New%20Video%20Center&field=title&field=fullTitle&customField=TileAd&customField=DisplayTitle';
@@ -125,6 +139,13 @@
 								}
 							}
 						}
+						if ($fp = fopen($finishedSeasons, 'a')) {
+							fwrite($fp, $series . ' - ' . $season."\n");
+							fclose($fp);
+						}
+						else {
+							echo '>> Failed saving to "Finished Seasons" file ('.$finishedSeasons.')'.PHP_EOL;
+						}
 					}
 					if ($fp = fopen($finishedShows, 'a')) {
 						fwrite($fp, $series."\n");
@@ -190,16 +211,22 @@
 					// HGTV_DeckedOut_E1013
 					$matches = array();
 					preg_match('/HGTV_'.str_replace(' ', '', $show).'_E[0-9]{1,2}([0-9][0-9])_/', $episode->thumbnailURL, $matches);
-					if (isset($matches[1]) && is_int($matches[1])) { // decimal episode numbers?
+					
+					if (isset($matches[1]) && is_numeric($matches[1])) { // decimal episode numbers?
 						$ep = $matches[1]; // got it
+					}
+					else {
+						var_dump($matches);
+						var_dump($episode); die;
 					}
 				}
 				
 				// fail if either set is missing
-				if ((!($show && $alternateHeading)) && (!($show && $season && $ep))) {
+				if ((!($show || $alternateHeading)) || (!($show || $season || $ep))) {
 					var_dump($episode);
 					throw new Exception('Missing one of show/ep/season');
 				}
+				
 				// things like "outtakes" and "timelapses" are missing $ep but have an $alternateHeading
 				if ($show && $alternateHeading) {
 					$title = $show . ' - ' . $alternateHeading . ' - ' . $episode->title;
