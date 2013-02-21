@@ -104,15 +104,15 @@
 							echo ' Found ' . count($episodes) . ' episode(s)'.PHP_EOL;
 
 							if (count($episodes) > 0) {
-								foreach ($episodes as $episode) {
+								foreach ($episodes as $idx => $episode) {
 									$fileName = str_replace(array(':', '?'), array(' -', ''), $episode['title']);
 									if (file_exists($folder.$fileName.'.flv')) {
-										echo '> "'.$episode['title'].'" exists, skipping.'.PHP_EOL;
+										echo str_pad(($idx+1).'.', 3, ' ', STR_PAD_RIGHT).' "'.$episode['title'].'" exists, skipping.'.PHP_EOL;
 									}
 									else {
 										$tries = 0;
 										while(true) {
-											echo '> Downloading "'.$episode['title'].'"... ';
+											echo str_pad(($idx+1).'.', 3, ' ', STR_PAD_RIGHT).' Downloading "'.$episode['title'].'"... ';
 											$code = null;
 											$temp = array();
 											exec('rtmpdump -r "' . $episode['stream'] . '" -y "' . $episode['playlist'] . '" -o "' . $folder.$fileName . '.flv"', $temp, $code);
