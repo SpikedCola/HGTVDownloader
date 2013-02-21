@@ -184,6 +184,17 @@
 							break;
 					}
 				}
+				
+				// ffs, some episodes dont have an episode #. parse it
+				if (!$ep && !$alternateHeading && $episode->thumbnailURL && $show) {
+					// HGTV_DeckedOut_E1013
+					$matches = array();
+					preg_match('/HGTV_'.str_replace(' ', '', $show).'_E[0-9]{1,2}([0-9][0-9])_/', $episode->thumbnailURL, $matches);
+					if (isset($matches[1]) && is_int($matches[1])) { // decimal episode numbers?
+						$ep = $matches[1]; // got it
+					}
+				}
+				
 				// fail if either set is missing
 				if ((!($show && $alternateHeading)) && (!($show && $season && $ep))) {
 					var_dump($episode);
