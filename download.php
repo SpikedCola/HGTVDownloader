@@ -22,7 +22,7 @@
 	$finishedSeasons = __DIR__ . '/finishedSeasons.txt'; // ignore these seasons
 	
 	echo PHP_EOL;
-	echo 'HGTV Show Downloader v0.2'.PHP_EOL.PHP_EOL;
+	echo 'HGTV Show Downloader v0.3'.PHP_EOL.PHP_EOL;
 	
 	$ignoreShows = array();
 	if ($fp = fopen($finishedShows, 'a+')) {
@@ -211,20 +211,24 @@
 					}
 				}
 				
-				// ffs, some episodes dont have an episode #. parse it (and some even have the wrong season number. these people suck)
+				// ffs, some episodes dont have an episode #. parse it 
+				// (and some even have the wrong season number. these people suck)
+				// man, the new guy must have been working on Decked Out - Season 1... 
+				// its all sorts of fucked up, and the cause of most of these edge cases
+				// s01e10 is even labelled as s03e10!
 				if (!$ep && !$alternateHeading && $episode->thumbnailURL && $show) {
 					// HGTV_DeckedOut_E1013
 					$matches = array();
-					preg_match('/HGTV_'.str_replace(' ', '', $show).'_E[0-9]{1,2}([0-9][0-9])_/', $episode->thumbnailURL, $matches);
+					preg_match('/HGTV_'.str_replace(' ', '', $show).'.*_E[0-9]{1,2}([0-9][0-9])_/', $episode->thumbnailURL, $matches);
 					
-					if (isset($matches[1]) && is_numeric($matches[1])) { // decimal episode numbers?
-						$ep = $matches[1]; // got it
+					if ($season && isset($matches[1]) && is_numeric($matches[1])) { // decimal episode numbers?
+						$ep = str_pad($matches[1], 2, '0', STR_PAD_LEFT); // got it
 					}
 					else {
 						if (!$season) {
 							// check other form (missing season AND episode, holyfuck)
 							// HGTV_DeckedOut_S1_E1012
-							// this is actually E12, the 10 seems to stay constant in the three examples I saw (1011, 1012)
+							// this is actually E12, the 10 seems to stay constant in the 2 examples I saw (1011, 1012)
 							$matches = array();
 							preg_match('/HGTV_'.str_replace(' ', '', $show).'_S([0-9]{1,2})_E([0-9]{3,4})_/', $episode->thumbnailURL, $matches);
 
@@ -285,7 +289,8 @@
 					$episodes[] = array(
 					    'title' => $title,
 					    'stream' => $stream,
-					    'playlist' => $playlist
+					    'playlist' => $playlist,
+					    'raw'=>$episode
 					);
 				}
 				else {
