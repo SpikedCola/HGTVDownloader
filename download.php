@@ -163,23 +163,39 @@
 				$show = null;
 				$ep = null;
 				$season = null;
+				$alternateHeading = null;
 				foreach ($episode->contentCustomData as $data) {
 					switch ($data->title) {
 						case 'Show':
 							$show = $data->value;
 							break;
 						case 'Episode':
-							$ep = str_pad($data->value, 2, '0', STR_PAD_LEFT);
+							if ($data->value != '') {
+								$ep = str_pad($data->value, 2, '0', STR_PAD_LEFT);
+							}
 							break;
 						case 'Season':
-							$season = str_pad($data->value, 2, '0', STR_PAD_LEFT);
+							if ($data->value != '') {
+								$season = str_pad($data->value, 2, '0', STR_PAD_LEFT);
+							}
+							break;
+						case 'AlternateHeading':
+							$alternateHeading = $data->value;
 							break;
 					}
 				}
-				if (!$show || !$ep || !$season) {
-					continue;
+				// fail if either set is missing
+				if ((!($show && $alternateHeading)) && (!($show && $season && $ep))) {
+					var_dump($episode);
+					throw new Exception('Missing one of show/ep/season');
 				}
-				$title = $show . ' - S' . $season . 'E' . $ep . ' - ' . $episode->title;
+				// things like "outtakes" and "timelapses" are missing $ep but have an $alternateHeading
+				if ($show && $alternateHeading) {
+					$title = $show . ' - ' . $alternateHeading . ' - ' . $episode->title;
+				}
+				else {
+					$title = $show . ' - S' . $season . 'E' . $ep . ' - ' . $episode->title;
+				}
 				$xmlString = file_get_contents($episode->URL);
 				if ($xmlString) {
 					$xml = simplexml_load_string($xmlString);
