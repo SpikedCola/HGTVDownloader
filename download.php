@@ -236,18 +236,14 @@
 								$season = str_pad($matches[1], 2, '0', STR_PAD_LEFT);
 								$ep = str_pad(substr($matches[2], -2, 2), 2, '0', STR_PAD_LEFT);
 							}
-							else {
-								var_dump($matches);
-								var_dump($episode); die;
-							}
 						}
 					}
 				}
 				
 				// fail if either set is missing
-				if ((!($show || $alternateHeading)) || (!($show || $season || $ep))) {
+				if (!$show && (!$alternateHeading || (!$season && !$ep))) {
 					var_dump($episode);
-					throw new Exception('Missing one of show/ep/season');
+					throw new Exception('Missing show or one of ep+season/altHeading');
 				}
 				
 				// theres an episode thats labelled as s3 when its actually s1
@@ -258,12 +254,17 @@
 				}
 				
 				// things like "outtakes" and "timelapses" are missing $ep but have an $alternateHeading
-				if ($show && $alternateHeading) {
+				if ($alternateHeading) {
 					$title = $show . ' - ' . $alternateHeading . ' - ' . $episode->title;
 				}
-				else {
+				elseif ($season && $ep) {
 					$title = $show . ' - S' . $season . 'E' . $ep . ' - ' . $episode->title;
 				}
+				// design inc. season 3 is this last case - no season or episode; not even in the thumbnail url (image was 'vlcsnap...' of all things'.. ffs
+				else {
+					$title = $show . ' - ' . $episode->title;
+				}
+				
 				$xmlString = file_get_contents($episode->URL);
 				if ($xmlString) {
 					$xml = simplexml_load_string($xmlString);
