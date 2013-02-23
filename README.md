@@ -11,7 +11,7 @@ Features:
  - "Finished Seasons" list to skip finding episodes for completed seasons
  - Automatically retries if a download fails or times out
  - Handles "Outtakes"/"Timelapse/etc" extras
- - Handles most of "Decked Out - Season 1"'s oddities (missing episode #, missing season #, etc)
+ - Handles "Decked Out/Disaster DIY" oddities (missing episode #, missing season #, missing both, etc)
 
 Makes use of [RTMPDump](http://rtmpdump.mplayerhq.hu/) - A custom-compiled version with some reworked output is included to look pretty when combined with the downloader. All credit for RTMPDump goes to Andrej Stepanchuk & Howard Chu.
 
