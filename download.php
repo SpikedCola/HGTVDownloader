@@ -187,7 +187,9 @@
 		    ':',
 		    '*',
 		    '|',
-		    '"'
+		    '"',
+		    '/',
+		    '\\'
 		);
 		return str_replace($replacements, '', $path);
 	}
