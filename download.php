@@ -84,16 +84,19 @@
 		}
 
 		foreach ($shows as $category => $serieses) {
+			$category = fix($category);
 			if (!is_dir($downloadFolder.$category)) {
 				mkdir($downloadFolder.$category);
 			}
 			foreach ($serieses as $series => $seasons) {
 				if (!in_array($series, $ignoreShows)) {
+					$series = fix($series);
 					if (!is_dir($downloadFolder.$category.'/'.$series)) {
 						mkdir($downloadFolder.$category.'/'.$series);
 					}
 					foreach ($seasons as $season => $data) {
 						if (!in_array($series . ' - ' . $season, $ignoreSeasons)) {
+							$season = fix($season);
 							$folder = $downloadFolder.$category.'/'.$series.'/'.$season.'/';
 							if (!is_dir($folder)) {
 								mkdir($folder);
@@ -105,7 +108,7 @@
 
 							if (count($episodes) > 0) {
 								foreach ($episodes as $idx => $episode) {
-									$fileName = str_replace(array(':', '?'), array(' -', ''), $episode['title']);
+									$fileName = fix($episode['title']);
 									if (file_exists($folder.$fileName.'.flv')) {
 										echo str_pad(($idx+1).'.', 3, ' ', STR_PAD_RIGHT).' "'.$episode['title'].'" exists, skipping.'.PHP_EOL;
 									}
@@ -171,6 +174,25 @@
 	}
 	
 	/**
+	 * Sanitizes a path
+	 * 
+	 * @param <string> $path The path to sanitize
+	 * @return <string> A valid path
+	 */
+	function fix($path) {
+		$replacements = array(
+		    '?',
+		    '<',
+		    '>',
+		    ':',
+		    '*',
+		    '|',
+		    '"'
+		);
+		return str_replace($replacements, '', $path);
+	}
+	
+	/**
 	 * Finds all the episodes for a given season. Also requests and parses
 	 * playlist XML file, and finds RTMP stream URL
 	 * 
@@ -180,7 +202,7 @@
 	 */
 	function getEpisodes($id) {
 		// 99 episodes at a time (start & end index)
-		$url = 'http://feeds.theplatform.com/ps/JSON/PortalService/2.2/getReleaseList?callback=&field=ID&field=contentID&field=PID&field=URL&field=categoryIDs&field=length&field=airdate&field=requestCount&PID=HmHUZlCuIXO_ymAAPiwCpTCNZ3iIF1EG&contentCustomField=Show&contentCustomField=Episode&contentCustomField=Network&contentCustomField=Season&contentCustomField=Zone&contentCustomField=Subject&query=Categories|z/HGTVNEWVC%20-%20New%20Video%20Center&param=Site|shaw.hgtv.ca&param=k0|id&param=v0|399&param=k1|cnt&param=v1|lifestylehomes&param=k2|nk&param=v2|sbrdcst&param=k3|pr&param=v3|hgtv&param=k4|kw&param=v4|shaw&param=k5|test&param=v5|test&param=k6|ck&param=v6|video&param=k7|imp&param=v7|video&param=k8|liveinsite&param=v8|hrtbuy&query=CategoryIDs|'.$id.'&field=thumbnailURL&field=title&field=length&field=description&field=assets&contentCustomField=Part&contentCustomField=Clip%20Type&contentCustomField=Web%20Exclusive&contentCustomField=ChapterStartTimes&contentCustomField=AlternateHeading&startIndex=1&endIndex=99&sortField=airdate&sortDescending=true';
+		$url = 'http://feeds.theplatform.com/ps/JSON/PortalService/2.2/getReleaseList?callback=&field=ID&field=contentID&field=PID&field=URL&field=categoryIDs&field=length&field=airdate&field=requestCount&PID=HmHUZlCuIXO_ymAAPiwCpTCNZ3iIF1EG&contentCustomField=Show&contentCustomField=Episode&contentCustomField=Network&contentCustomField=Season&contentCustomField=Zone&contentCustomField=Subject&query=Categories|z/HGTVNEWVC%20-%20New%20Video%20Center&param=Site|shaw.hgtv.ca&param=k0|id&param=v0|399&param=k1|cnt&param=v1|lifestylehomes&param=k2|nk&param=v2|sbrdcst&param=k3|pr&param=v3|hgtv&param=k4|kw&param=v4|shaw&param=k5|test&param=v5|test&param=k6|ck&param=v6|video&param=k7|imp&param=v7|video&param=k8|liveinsite&param=v8|hrtbuy&query=CategoryIDs|'.$id.'&field=thumbnailURL&field=title&field=length&field=description&field=assets&contentCustomField=Part&contentCustomField=Clip%20Type&contentCustomField=Web%20Exclusive&contentCustomField=ChapterStartTimes&contentCustomField=AlternateHeading&startIndex=1&endIndex=200&sortField=airdate&sortDescending=true';
 		$episodes = array();
 		$response = file_get_contents($url);
 		if ($response) {
@@ -211,39 +233,10 @@
 					}
 				}
 				
-				// ffs, some episodes dont have an episode #. parse it 
-				// (and some even have the wrong season number. these people suck)
-				// man, the new guy must have been working on Decked Out - Season 1... 
-				// its all sorts of fucked up, and the cause of most of these edge cases
-				// s01e10 is even labelled as s03e10!
-				if (!$ep && !$alternateHeading && $episode->thumbnailURL && $show) {
-					// HGTV_DeckedOut_E1013
-					$matches = array();
-					preg_match('/HGTV_'.str_replace(' ', '', $show).'.*_E[0-9]{1,2}([0-9][0-9])_/', $episode->thumbnailURL, $matches);
-					
-					if ($season && isset($matches[1]) && is_numeric($matches[1])) { // decimal episode numbers?
-						$ep = str_pad($matches[1], 2, '0', STR_PAD_LEFT); // got it
-					}
-					else {
-						if (!$season) {
-							// check other form (missing season AND episode, holyfuck)
-							// HGTV_DeckedOut_S1_E1012
-							// this is actually E12, the 10 seems to stay constant in the 2 examples I saw (1011, 1012)
-							$matches = array();
-							preg_match('/HGTV_'.str_replace(' ', '', $show).'_S([0-9]{1,2})_E([0-9]{3,4})_/', $episode->thumbnailURL, $matches);
-
-							if (isset($matches[1]) && is_numeric($matches[1]) && isset($matches[2]) && is_numeric($matches[2])) { // decimal episode numbers?
-								$season = str_pad($matches[1], 2, '0', STR_PAD_LEFT);
-								$ep = str_pad(substr($matches[2], -2, 2), 2, '0', STR_PAD_LEFT);
-							}
-						}
-					}
-				}
-				
 				// fail if either set is missing
-				if (!$show && (!$alternateHeading || (!$season && !$ep))) {
+				if (!$show) {
 					var_dump($episode);
-					throw new Exception('Missing show or one of ep+season/altHeading');
+					throw new Exception('Missing show');
 				}
 				
 				// theres an episode thats labelled as s3 when its actually s1
@@ -260,7 +253,7 @@
 				elseif ($season && $ep) {
 					$title = $show . ' - S' . $season . 'E' . $ep . ' - ' . $episode->title;
 				}
-				// design inc. season 3 is this last case - no season or episode; not even in the thumbnail url (image was 'vlcsnap...' of all things'.. ffs
+				// site displays like this if there is no episode #
 				else {
 					$title = $show . ' - ' . $episode->title;
 				}
